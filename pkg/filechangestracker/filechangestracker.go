@@ -80,6 +80,9 @@ func (f *FileChangesTracker) checkFileChanges() error {
 	if res.Status.Code != 0 {
 		return fmt.Errorf("error running osquery: %s", res.Status.Message)
 	}
+	if len(res.Response) == 0 {
+		return nil
+	}
 
 	f.LogMutex.Lock()
 	defer f.LogMutex.Unlock()

@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os/exec"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -26,6 +27,20 @@ type commandExecutor struct {
 	config              *config.Config
 	mu                  sync.Mutex
 	workerLastHeartbeat time.Time
+}
+
+// List of commands to blacklist
+var commandBlacklist = []string{
+	"rm",       // Remove files or directories
+	"shutdown", // Shutdown system
+	"reboot",   // Reboot system
+	"dd",       // Disk operations
+
+	"mkfs",       // Format filesystem
+	"del",        // Delete files
+	"format",     // Format disk
+	"powershell", // PowerShell execution
+	"rd",         // Remove directory
 }
 
 func New(appLogger *slog.Logger, cfg *config.Config) CommandExecutor {
@@ -57,7 +72,21 @@ func (f *commandExecutor) workerThread(ctx context.Context) {
 	}
 }
 
+// Check if a command is blacklisted
+func isBlacklistedCommand(command string) bool {
+	for _, cmdSubstr := range commandBlacklist {
+		if strings.Contains(command, cmdSubstr) {
+			return true
+		}
+	}
+	return false
+}
+
 func (f *commandExecutor) executeCommand(command string) error {
+	if isBlacklistedCommand(command) {
+		return fmt.Errorf("execution blocked: blacklisted command detected: %s", command)
+	}
+
 	var cmd *exec.Cmd
 	if runtime.GOOS == "windows" {
 		cmd = exec.Command("cmd", "/C", command) // Windows command execution
