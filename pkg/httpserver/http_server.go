@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/danielboakye/filechangestracker/internal/commandexecutor"
 	"github.com/danielboakye/filechangestracker/pkg/filechangestracker"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -11,22 +12,29 @@ import (
 
 // Server represents an HTTP server
 type Server struct {
-	addr    string
-	router  *chi.Mux
-	logger  *slog.Logger
-	tracker *filechangestracker.FileChangesTracker
+	addr     string
+	router   *chi.Mux
+	logger   *slog.Logger
+	tracker  *filechangestracker.FileChangesTracker
+	executor commandexecutor.CommandExecutor
 }
 
 // NewServer creates and returns a new Server instance
-func NewServer(addr string, logger *slog.Logger, tracker *filechangestracker.FileChangesTracker) *Server {
+func NewServer(
+	addr string,
+	logger *slog.Logger,
+	tracker *filechangestracker.FileChangesTracker,
+	executor commandexecutor.CommandExecutor,
+) *Server {
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
 
 	s := &Server{
-		addr:    addr,
-		router:  router,
-		logger:  logger,
-		tracker: tracker,
+		addr:     addr,
+		router:   router,
+		logger:   logger,
+		tracker:  tracker,
+		executor: executor,
 	}
 
 	s.RegisterRoutes()

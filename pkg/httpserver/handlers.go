@@ -45,7 +45,7 @@ func (s *Server) HandleSubmitCommands(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.tracker.AddCommands(req.Commands)
+	s.executor.AddCommands(req.Commands)
 
 	response.JSON(w, http.StatusOK, map[string]string{
 		"message": "Commands added to queue",
@@ -55,7 +55,7 @@ func (s *Server) HandleSubmitCommands(w http.ResponseWriter, r *http.Request) {
 // handleHealthCheck returns the health status of the worker and timer threads
 func (s *Server) HandleHealthCheck(w http.ResponseWriter, r *http.Request) {
 	res := HealthCheckResponse{
-		WorkerThread: s.tracker.IsWorkerThreadAlive(),
+		WorkerThread: s.executor.IsWorkerThreadAlive(),
 		TimerThread:  s.tracker.IsTimerThreadAlive(),
 	}
 

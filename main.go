@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/danielboakye/filechangestracker/internal/commandexecutor"
 	"github.com/danielboakye/filechangestracker/pkg/config"
 	"github.com/danielboakye/filechangestracker/pkg/filechangestracker"
 	"github.com/danielboakye/filechangestracker/pkg/httpserver"
@@ -28,15 +29,22 @@ func main() {
 		Level: slog.LevelDebug,
 	}))
 
+	cxt := context.Background()
+
+	executor := commandexecutor.New(appLogger, cfg)
+	if err := executor.Start(cxt); err != nil {
+		log.Fatal("failed to start command executor: %w", err)
+	}
+
 	trackerLogger := slog.New(slog.NewJSONHandler(trackerLogFile, nil))
 	tracker := filechangestracker.New(trackerLogger, appLogger, cfg)
-	if err := tracker.Start(context.TODO()); err != nil {
+	if err := tracker.Start(cxt); err != nil {
 		log.Fatal("failed to start tracker: %w", err)
 	}
 	appLogger.Info("started-tracker-on-directory", slog.String("directory", cfg.Directory))
 
 	addr := fmt.Sprintf(":%s", cfg.HTTPPort)
-	apiServer := httpserver.NewServer(addr, appLogger, tracker)
+	apiServer := httpserver.NewServer(addr, appLogger, tracker, executor)
 	if err := apiServer.Start(); err != nil {
 		log.Fatal("failed to start http server on: ", addr)
 	}

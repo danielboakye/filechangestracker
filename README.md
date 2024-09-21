@@ -31,6 +31,15 @@ curl -s -X POST http://localhost:9000/v1/commands \
 NOTE:
 osqueryd should be running
 
+- Windows: (_as administrator_)
+
+```bash
+osqueryd --socket=C:\Users\user\.osquery\shell.em --verbose --disable_events=false --enable_ntfs_event_publisher=true --enable_powershell_events_subscriber=true --enable_windows_events_publisher=true --enable_windows_events_subscriber=true
+
+```
+
+- macOS:
+
 ```bash
 sudo osqueryd --socket=/Users/user/.osquery/shell.em --verbose --disable_events=false --disable_audit=false --disable_endpointsecurity=false --disable_endpointsecurity_fim=false --enable_file_events=true
 ```
