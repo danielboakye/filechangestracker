@@ -1,15 +1,13 @@
 ## Setup
 
-### 1. Create binary
+### 1. Config
+
+Updated config.yaml to setup tracking directory and osquery socket_path
+
+### 2. Build and start
 
 ```bash
-go build
-```
-
-### 2. start tracker
-
-```bash
-sudo ./filechangestracker
+go build && sudo ./filechangestracker
 ```
 
 ### 3. Check heath of of workers
