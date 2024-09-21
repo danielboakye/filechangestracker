@@ -37,7 +37,7 @@ func New(appLogger *slog.Logger, cfg *config.Config) CommandExecutor {
 }
 
 func (f *commandExecutor) workerThread(ctx context.Context) {
-	ticker := time.NewTicker(1 * time.Minute) // Heartbeat every minute
+	ticker := time.NewTicker(10 * time.Second) // Heartbeat every 10 seconds
 	defer ticker.Stop()
 
 	for {

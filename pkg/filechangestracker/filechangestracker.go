@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strconv"
 	"sync"
 	"time"
 
@@ -12,13 +13,14 @@ import (
 )
 
 type FileChangesTracker struct {
-	trackerLogger      *slog.Logger
-	appLogger          *slog.Logger
-	config             *config.Config
-	timerLastHeartbeat time.Time
-	mu                 sync.Mutex
-	osqueryClient      *osquery.ExtensionManagerClient
-	LogMutex           sync.Mutex
+	trackerLogger          *slog.Logger
+	appLogger              *slog.Logger
+	config                 *config.Config
+	timerLastHeartbeat     time.Time
+	mu                     sync.Mutex
+	osqueryClient          *osquery.ExtensionManagerClient
+	LogMutex               sync.Mutex
+	lastProcessedTimestamp int64
 }
 
 func New(trackerLogger *slog.Logger, appLogger *slog.Logger, cfg *config.Config) *FileChangesTracker {
@@ -70,7 +72,7 @@ func (f *FileChangesTracker) timerThread(ctx context.Context) {
 }
 
 func (f *FileChangesTracker) checkFileChanges() error {
-	query := "SELECT * FROM file_events WHERE target_path LIKE '" + f.config.Directory + "%';"
+	query := fmt.Sprintf("SELECT * FROM file_events WHERE target_path LIKE '%s%%'  AND time > %d;", f.config.Directory, f.lastProcessedTimestamp)
 	res, err := f.osqueryClient.Query(query)
 	if err != nil {
 		return fmt.Errorf("error running osquery: %w", err)
@@ -87,6 +89,14 @@ func (f *FileChangesTracker) checkFileChanges() error {
 			"change detected",
 			slog.Any("details", row),
 		)
+
+		changeTime, err := strconv.ParseInt(row["time"], 10, 64)
+		if err != nil {
+			continue
+		}
+		if changeTime > f.lastProcessedTimestamp {
+			f.lastProcessedTimestamp = changeTime
+		}
 	}
 
 	return nil
