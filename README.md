@@ -51,13 +51,3 @@ osquery.conf
     ]
   }
 ```
-
-Create a .pkg Installer
-
-```bash
-pkgbuild --root /usr/local/bin \
-         --identifier com.test.filechangestracker \
-         --version 1.0 \
-         --install-location / \
-         filechangestracker-1.0.pkg
-```
