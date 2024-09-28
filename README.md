@@ -2,7 +2,17 @@
 
 ### 1. Config
 
-Updated config.yaml to setup tracking directory and osquery socket_path
+- Updated config.yaml to setup tracking directory and osquery socket_path
+- setup mongo db in docker
+
+```bash
+docker run -d --name logsdb -p 27017:27017 \
+  -e MONGO_INITDB_ROOT_USERNAME=user \
+  -e MONGO_INITDB_ROOT_PASSWORD=password \
+  -v mongo_data:/data/db \
+  mongo
+
+```
 
 ### 2. Build and start
 

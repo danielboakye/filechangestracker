@@ -12,7 +12,9 @@ import (
 
 	commandexecutormock "github.com/danielboakye/filechangestracker/mocks/commandexecutor"
 	filechangestrackermock "github.com/danielboakye/filechangestracker/mocks/filechangestracker"
+	"github.com/danielboakye/filechangestracker/pkg/mongolog"
 	"github.com/golang/mock/gomock"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -117,10 +119,13 @@ func TestGetLogs(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/v1/logs", nil)
 	r.Header.Set("Content-Type", "application/json")
 
-	mockFileTracker.EXPECT().GetLogs().Return([]map[string]interface{}{
+	mockFileTracker.EXPECT().GetLogs(gomock.Any(), gomock.Any(), gomock.Any()).Return([]mongolog.LogEntry{
 		{
-			"target_path": "test/test.txt",
-			"time":        strconv.FormatInt(time.Now().Unix(), 10),
+			ID: uuid.NewString(),
+			Details: map[string]interface{}{
+				"target_path": "test/test.txt",
+				"time":        strconv.FormatInt(time.Now().Unix(), 10),
+			},
 		},
 	}, nil).Times(1)
 

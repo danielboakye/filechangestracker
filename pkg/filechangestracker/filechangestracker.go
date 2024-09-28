@@ -1,18 +1,16 @@
 package filechangestracker
 
 import (
-	"bufio"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
-	"os"
 	"strconv"
 	"sync"
 	"time"
 
 	"github.com/danielboakye/filechangestracker/pkg/config"
+	"github.com/danielboakye/filechangestracker/pkg/mongolog"
 	"github.com/danielboakye/filechangestracker/pkg/osquerymanager"
 )
 
@@ -22,7 +20,7 @@ type FileChangesTracker interface {
 	Stop(ctx context.Context) error
 
 	IsTimerThreadAlive() bool
-	GetLogs() ([]map[string]interface{}, error)
+	GetLogs(ctx context.Context, limit, offset int64) ([]mongolog.LogEntry, error)
 }
 
 type fileChangesTracker struct {
@@ -32,16 +30,23 @@ type fileChangesTracker struct {
 	timerLastHeartbeat     time.Time
 	mu                     sync.Mutex
 	osqueryManager         osquerymanager.OSQueryManager
-	logMutex               sync.Mutex
 	lastProcessedTimestamp int64
+	logStore               mongolog.LogStore
 }
 
-func New(trackerLogger *slog.Logger, appLogger *slog.Logger, cfg *config.Config, osqueryManager osquerymanager.OSQueryManager) FileChangesTracker {
+func New(
+	trackerLogger *slog.Logger,
+	appLogger *slog.Logger,
+	cfg *config.Config,
+	osqueryManager osquerymanager.OSQueryManager,
+	logStore mongolog.LogStore,
+) FileChangesTracker {
 	return &fileChangesTracker{
 		trackerLogger:  trackerLogger,
 		appLogger:      appLogger,
 		config:         cfg,
 		osqueryManager: osqueryManager,
+		logStore:       logStore,
 	}
 }
 
@@ -85,8 +90,6 @@ func (f *fileChangesTracker) checkFileChanges() error {
 		return fmt.Errorf("error querying file changes: %w", err)
 	}
 
-	f.logMutex.Lock()
-	defer f.logMutex.Unlock()
 	for _, row := range res {
 		f.appLogger.Debug("new change detected", slog.String("target_path", row["target_path"]))
 		f.trackerLogger.Info(
@@ -117,35 +120,11 @@ func (f *fileChangesTracker) IsTimerThreadAlive() bool {
 	return time.Since(f.timerLastHeartbeat) < deadline
 }
 
-func (f *fileChangesTracker) GetLogs() ([]map[string]interface{}, error) {
-	f.logMutex.Lock()
-	defer f.logMutex.Unlock()
-
-	file, err := os.Open(f.config.LogFile)
+func (f *fileChangesTracker) GetLogs(ctx context.Context, limit, offset int64) ([]mongolog.LogEntry, error) {
+	res, err := f.logStore.ReadLogsPaginated(ctx, limit, offset)
 	if err != nil {
-		f.appLogger.Error("error-getting-logs", slog.String("error", err.Error()))
-		return nil, fmt.Errorf("failed to open log file: %w", err)
-	}
-	defer file.Close()
-
-	var res []map[string]interface{}
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		var jsonObject map[string]interface{}
-		line := scanner.Text()
-
-		err := json.Unmarshal([]byte(line), &jsonObject)
-		if err != nil {
-			f.appLogger.Error("error-getting-logs", slog.String("error", err.Error()))
-			return nil, fmt.Errorf("failed to Unmarshal logs: %w", err)
-		}
-
-		res = append(res, jsonObject)
-	}
-
-	if err := scanner.Err(); err != nil {
-		f.appLogger.Error("error-getting-logs", slog.String("error", err.Error()))
-		return nil, fmt.Errorf("failed to scan log file: %w", err)
+		f.appLogger.Error("error-loading-from-logs-db", slog.String("error", err.Error()))
+		return nil, fmt.Errorf("error loading from db: %w", err)
 	}
 
 	return res, nil

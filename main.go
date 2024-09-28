@@ -14,6 +14,7 @@ import (
 	"github.com/danielboakye/filechangestracker/pkg/config"
 	"github.com/danielboakye/filechangestracker/pkg/filechangestracker"
 	"github.com/danielboakye/filechangestracker/pkg/httpserver"
+	"github.com/danielboakye/filechangestracker/pkg/mongolog"
 	"github.com/danielboakye/filechangestracker/pkg/osquerymanager"
 	"github.com/osquery/osquery-go"
 )
@@ -24,11 +25,10 @@ func main() {
 		log.Fatal("error loading config: %w", err)
 	}
 
-	trackerLogFile, err := os.OpenFile(cfg.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	trackerLogger, logStore, err := mongolog.NewLogger(cfg.MongoURI)
 	if err != nil {
-		log.Fatalf("Error opening log file: %v", err)
+		log.Fatalf("failed to start mongo: %v", err)
 	}
-	defer trackerLogFile.Close()
 
 	appLogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
@@ -48,8 +48,7 @@ func main() {
 	}
 	osqueryManager := osquerymanager.New(osqueryClient)
 
-	trackerLogger := slog.New(slog.NewJSONHandler(trackerLogFile, nil))
-	tracker := filechangestracker.New(trackerLogger, appLogger, cfg, osqueryManager)
+	tracker := filechangestracker.New(trackerLogger, appLogger, cfg, osqueryManager, logStore)
 	if err := tracker.Start(ctx); err != nil {
 		log.Fatal("failed to start tracker: %w", err)
 	}

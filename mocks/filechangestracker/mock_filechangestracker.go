@@ -8,6 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	mongolog "github.com/danielboakye/filechangestracker/pkg/mongolog"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -35,18 +36,18 @@ func (m *MockFileChangesTracker) EXPECT() *MockFileChangesTrackerMockRecorder {
 }
 
 // GetLogs mocks base method.
-func (m *MockFileChangesTracker) GetLogs() ([]map[string]interface{}, error) {
+func (m *MockFileChangesTracker) GetLogs(ctx context.Context, limit, offset int64) ([]mongolog.LogEntry, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLogs")
-	ret0, _ := ret[0].([]map[string]interface{})
+	ret := m.ctrl.Call(m, "GetLogs", ctx, limit, offset)
+	ret0, _ := ret[0].([]mongolog.LogEntry)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetLogs indicates an expected call of GetLogs.
-func (mr *MockFileChangesTrackerMockRecorder) GetLogs() *gomock.Call {
+func (mr *MockFileChangesTrackerMockRecorder) GetLogs(ctx, limit, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLogs", reflect.TypeOf((*MockFileChangesTracker)(nil).GetLogs))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLogs", reflect.TypeOf((*MockFileChangesTracker)(nil).GetLogs), ctx, limit, offset)
 }
 
 // IsTimerThreadAlive mocks base method.

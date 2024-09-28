@@ -5,3 +5,4 @@ check_frequency: 5 # in seconds
 reporting_api: 'http://api.external.com/v1/report'
 http_port: '9000'
 socket_path: '/Users/user/.osquery/shell.em'
+mongo_uri: 'mongodb://user:password@localhost:27017'

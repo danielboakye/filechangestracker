@@ -24,6 +24,7 @@ directory: "/tmp"
 check_frequency: 10
 reporting_api: "http://localhost/api"
 socket_path: "/tmp/socket"
+mongo_uri: "mongodb://user:password@localhost:27017"
 `
 	_, err = tempConfigFile.Write([]byte(configData))
 	require.NoError(err)
@@ -78,6 +79,7 @@ directory: ""
 check_frequency: 10
 reporting_api: "http://localhost/api"
 socket_path: "/tmp/socket"
+mongo_uri: "mongodb://user:password@localhost:27017"
 `
 
 	_, err = tempConfigFile.Write([]byte(configData))

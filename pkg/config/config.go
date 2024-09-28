@@ -9,16 +9,19 @@ import (
 	"github.com/spf13/viper"
 )
 
+const (
+	LogsDBName         = "logsDB"
+	LogsCollectionName = "logs"
+)
+
 type Config struct {
 	Directory      string `validate:"required"`
 	CheckFrequency int    `validate:"required,min=1"`
 	ReportingAPI   string `validate:"required,url"`
 	HTTPPort       string `validate:"required"`
 	SocketPath     string `validate:"required"`
-	LogFile        string `validate:"required"`
+	MongoURI       string `validate:"required"`
 }
-
-const fileChangesLogFile = "filechangestracker.log"
 
 func LoadConfig(name, path string) (*Config, error) {
 	viper.SetConfigName(name)
@@ -44,7 +47,7 @@ func LoadConfig(name, path string) (*Config, error) {
 		ReportingAPI:   viper.GetString("reporting_api"),
 		HTTPPort:       viper.GetString("http_port"),
 		SocketPath:     viper.GetString("socket_path"),
-		LogFile:        fileChangesLogFile,
+		MongoURI:       viper.GetString("mongo_uri"),
 	}
 
 	validate := validator.New()
