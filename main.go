@@ -68,6 +68,7 @@ func main() {
 	apiServer.Stop(ctx)
 	executor.Stop(ctx)
 	tracker.Stop(ctx)
+	logStore.Close(ctx)
 	appLogger.Info("shutdown-complete!")
 
 }

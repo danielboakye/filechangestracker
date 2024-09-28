@@ -36,7 +36,7 @@ func NewLogger(mongoURI string) (*slog.Logger, LogStore, error) {
 }
 
 func newMongoWriter(mongoURI, databaseName, collectionName string) (LogStore, error) {
-	ctx := context.TODO()
+	ctx := context.Background()
 	clientOptions := options.Client().ApplyURI(mongoURI)
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
@@ -76,7 +76,7 @@ func (l *logStore) Write(p []byte) (n int, err error) {
 	logEntry.CreatedAt = time.Now()
 	_, err = l.collection.InsertOne(ctxWithTimeout, logEntry)
 	if err != nil {
-		return 0, fmt.Errorf("failed to insert log entry into MongoDB: %w", err)
+		return 0, fmt.Errorf("failed to insert log entry into mongolog store: %w", err)
 	}
 
 	return len(p), nil

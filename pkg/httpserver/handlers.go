@@ -67,7 +67,7 @@ func (s *Server) HandleHealthCheck(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) HandleGetLogs(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
-	var offset, limit int64 = 1, 10
+	var offset, limit int64 = 0, 10
 	var err error
 	queryOffset := q.Get("offset")
 	if queryOffset != "" {

@@ -50,7 +50,7 @@ func TestCheckFileChanges(t *testing.T) {
 	mockMongolog.EXPECT().ReadLogsPaginated(gomock.Any(), gomock.Any(), gomock.Any()).Return([]mongolog.LogEntry{
 		{
 			ID: uuid.NewString(),
-			Details: map[string]interface{}{
+			Details: map[string]string{
 				"target_path": "test/test.txt",
 				"time":        timeStr,
 			},

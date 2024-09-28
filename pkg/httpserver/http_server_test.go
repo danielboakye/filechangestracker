@@ -122,7 +122,7 @@ func TestGetLogs(t *testing.T) {
 	mockFileTracker.EXPECT().GetLogs(gomock.Any(), gomock.Any(), gomock.Any()).Return([]mongolog.LogEntry{
 		{
 			ID: uuid.NewString(),
-			Details: map[string]interface{}{
+			Details: map[string]string{
 				"target_path": "test/test.txt",
 				"time":        strconv.FormatInt(time.Now().Unix(), 10),
 			},

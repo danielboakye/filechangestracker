@@ -42,11 +42,12 @@ func New(
 	logStore mongolog.LogStore,
 ) FileChangesTracker {
 	return &fileChangesTracker{
-		trackerLogger:  trackerLogger,
-		appLogger:      appLogger,
-		config:         cfg,
-		osqueryManager: osqueryManager,
-		logStore:       logStore,
+		trackerLogger:          trackerLogger,
+		appLogger:              appLogger,
+		config:                 cfg,
+		osqueryManager:         osqueryManager,
+		logStore:               logStore,
+		lastProcessedTimestamp: time.Now().Unix(),
 	}
 }
 

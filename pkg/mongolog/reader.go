@@ -10,16 +10,16 @@ import (
 )
 
 type LogEntry struct {
-	ID        interface{}            `bson:"_id" json:"id"`
-	CreatedAt time.Time              `bson:"created_at" json:"-"`
-	Details   map[string]interface{} `bson:"details" json:"details"`
-	Level     string                 `bson:"level" json:"-"`
-	Msg       string                 `bson:"msg" json:"-"`
-	LogTime   string                 `bson:"time" json:"logTime"`
+	ID        string            `bson:"_id" json:"id"`
+	CreatedAt time.Time         `bson:"created_at" json:"-"`
+	Details   map[string]string `bson:"details" json:"details"`
+	Level     string            `bson:"level" json:"-"`
+	Msg       string            `bson:"msg" json:"-"`
+	LogTime   string            `bson:"time" json:"logTime"`
 }
 
 func (l *logStore) ReadLogsPaginated(ctx context.Context, limit, offset int64) ([]LogEntry, error) {
-	ctxWithTimeout, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, 1*time.Minute)
 	defer cancel()
 
 	if limit < 1 {
@@ -29,7 +29,7 @@ func (l *logStore) ReadLogsPaginated(ctx context.Context, limit, offset int64) (
 	findOptions := options.Find()
 	findOptions.SetSkip(offset)
 	findOptions.SetLimit(limit)
-	findOptions.SetSort(bson.D{{Key: "timestamp", Value: -1}}) // Sort by timestamp descending
+	findOptions.SetSort(bson.D{{Key: "created_at", Value: -1}}) // Sort by date created descending
 
 	cursor, err := l.collection.Find(ctxWithTimeout, bson.D{}, findOptions)
 	if err != nil {
