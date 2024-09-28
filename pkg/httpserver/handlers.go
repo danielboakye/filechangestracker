@@ -1,13 +1,11 @@
 package httpserver
 
 import (
-	"bufio"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
-	"os"
 
-	"github.com/danielboakye/filechangestracker/pkg/config"
 	"github.com/danielboakye/filechangestracker/pkg/response"
 )
 
@@ -45,10 +43,13 @@ func (s *Server) HandleSubmitCommands(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.executor.AddCommands(req.Commands)
+	err = s.executor.AddCommands(req.Commands)
+	if err != nil {
+		response.InternalError(w)
+	}
 
 	response.JSON(w, http.StatusOK, map[string]string{
-		"message": "Commands added to queue",
+		"message": "commands added to queue",
 	})
 }
 
@@ -63,32 +64,8 @@ func (s *Server) HandleHealthCheck(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) HandleGetLogs(w http.ResponseWriter, r *http.Request) {
-	s.tracker.LogMutex.Lock()
-	defer s.tracker.LogMutex.Unlock()
-
-	file, err := os.Open(config.FileChangesLogFile)
+	res, err := s.tracker.GetLogs()
 	if err != nil {
-		response.InternalError(w)
-		return
-	}
-	defer file.Close()
-
-	var res []map[string]interface{}
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		var jsonObject map[string]interface{}
-		line := scanner.Text()
-
-		err := json.Unmarshal([]byte(line), &jsonObject)
-		if err != nil {
-			response.InternalError(w)
-			return
-		}
-
-		res = append(res, jsonObject)
-	}
-
-	if err := scanner.Err(); err != nil {
 		response.InternalError(w)
 		return
 	}
@@ -98,6 +75,6 @@ func (s *Server) HandleGetLogs(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusNotFound, map[string]string{
-		"message": "The requested resource could not be found",
+		"message": fmt.Sprintf("resource: (%s) could not be found", r.URL.Path),
 	})
 }

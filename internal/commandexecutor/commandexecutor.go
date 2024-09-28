@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"os/exec"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -13,6 +12,7 @@ import (
 	"github.com/danielboakye/filechangestracker/pkg/config"
 )
 
+//go:generate mockgen -destination=../../mocks/commandexecutor/mock_commandexecutor.go -package=commandexecutormock -source=commandexecutor.go
 type CommandExecutor interface {
 	Start(ctx context.Context) error
 	Stop(ctx context.Context) error
@@ -29,18 +29,9 @@ type commandExecutor struct {
 	workerLastHeartbeat time.Time
 }
 
-// List of commands to blacklist
-var commandBlacklist = []string{
-	"rm",       // Remove files or directories
-	"shutdown", // Shutdown system
-	"reboot",   // Reboot system
-	"dd",       // Disk operations
-
-	"mkfs",       // Format filesystem
-	"del",        // Delete files
-	"format",     // Format disk
-	"powershell", // PowerShell execution
-	"rd",         // Remove directory
+var commandWhitelist = []string{
+	"touch",
+	"mkdir",
 }
 
 func New(appLogger *slog.Logger, cfg *config.Config) CommandExecutor {
@@ -72,29 +63,46 @@ func (f *commandExecutor) workerThread(ctx context.Context) {
 	}
 }
 
-// Check if a command is blacklisted
-func isBlacklistedCommand(command string) bool {
-	for _, cmdSubstr := range commandBlacklist {
-		if strings.Contains(command, cmdSubstr) {
+func isCommandWhitelisted(command string) bool {
+	for _, allowedCmd := range commandWhitelist {
+		if command == allowedCmd {
 			return true
 		}
 	}
 	return false
 }
 
-func (f *commandExecutor) executeCommand(command string) error {
-	if isBlacklistedCommand(command) {
-		return fmt.Errorf("execution blocked: blacklisted command detected: %s", command)
+func parseCommand(input string) (command string, args []string, err error) {
+	tokens := strings.Fields(input)
+	if len(tokens) == 0 {
+		return command, args, fmt.Errorf("no command provided")
 	}
 
-	var cmd *exec.Cmd
-	if runtime.GOOS == "windows" {
-		cmd = exec.Command("cmd", "/C", command) // Windows command execution
-	} else {
-		cmd = exec.Command("/bin/sh", "-c", command)
+	// Check for 'sudo' and strip it if present
+	if strings.ToLower(tokens[0]) == "sudo" {
+		tokens = tokens[1:]
+		if len(tokens) == 0 {
+			return command, args, fmt.Errorf("no command provided after sudo")
+		}
 	}
 
-	err := cmd.Run()
+	command = tokens[0]
+	args = tokens[1:]
+	return command, args, nil
+}
+
+func (f *commandExecutor) executeCommand(input string) error {
+	command, args, err := parseCommand(input)
+	if err != nil {
+		return err
+	}
+
+	if !isCommandWhitelisted(command) {
+		return fmt.Errorf("execution blocked: command: %s is not whitelisted", command)
+	}
+
+	cmd := exec.Command(command, args...)
+	err = cmd.Run()
 	if err != nil {
 		return fmt.Errorf("error executing command: %w", err)
 	}

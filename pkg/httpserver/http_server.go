@@ -15,7 +15,7 @@ import (
 type Server struct {
 	httpServer *http.Server
 	logger     *slog.Logger
-	tracker    *filechangestracker.FileChangesTracker
+	tracker    filechangestracker.FileChangesTracker
 	executor   commandexecutor.CommandExecutor
 }
 
@@ -23,7 +23,7 @@ type Server struct {
 func NewServer(
 	addr string,
 	logger *slog.Logger,
-	tracker *filechangestracker.FileChangesTracker,
+	tracker filechangestracker.FileChangesTracker,
 	executor commandexecutor.CommandExecutor,
 ) *Server {
 	router := chi.NewRouter()
