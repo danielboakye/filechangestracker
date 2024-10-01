@@ -3,6 +3,7 @@ package mongolog
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -77,14 +78,20 @@ func (l *logStore) Write(ctx context.Context, logDetail map[string]string) error
 	defer cancel()
 
 	now := time.Now()
+	logTime := now
+	changeTime, err := strconv.ParseInt(logDetail["time"], 10, 64)
+	if err == nil {
+		logTime = time.Unix(changeTime, 0)
+	}
+
 	logEntry := LogEntry{
 		ID:        uuid.NewString(),
 		CreatedAt: now,
 		Details:   logDetail,
-		LogTime:   now.Format(time.RFC3339),
+		LogTime:   logTime.Format(time.RFC3339),
 	}
 
-	_, err := l.collection.InsertOne(ctxWithTimeout, logEntry)
+	_, err = l.collection.InsertOne(ctxWithTimeout, logEntry)
 	if err != nil {
 		return fmt.Errorf("failed to insert log entry into mongolog store: %w", err)
 	}
