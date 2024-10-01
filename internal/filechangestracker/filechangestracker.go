@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/danielboakye/filechangestracker/pkg/config"
-	"github.com/danielboakye/filechangestracker/pkg/mongolog"
+	"github.com/danielboakye/filechangestracker/internal/config"
+	"github.com/danielboakye/filechangestracker/internal/mongolog"
 	"github.com/danielboakye/filechangestracker/pkg/osquerymanager"
 )
 
@@ -24,7 +24,6 @@ type FileChangesTracker interface {
 }
 
 type fileChangesTracker struct {
-	trackerLogger          *slog.Logger
 	appLogger              *slog.Logger
 	config                 *config.Config
 	timerLastHeartbeat     time.Time
@@ -35,14 +34,12 @@ type fileChangesTracker struct {
 }
 
 func New(
-	trackerLogger *slog.Logger,
 	appLogger *slog.Logger,
 	cfg *config.Config,
 	osqueryManager osquerymanager.OSQueryManager,
 	logStore mongolog.LogStore,
 ) FileChangesTracker {
 	return &fileChangesTracker{
-		trackerLogger:          trackerLogger,
 		appLogger:              appLogger,
 		config:                 cfg,
 		osqueryManager:         osqueryManager,
@@ -73,7 +70,7 @@ func (f *fileChangesTracker) timerThread(ctx context.Context) {
 			f.timerLastHeartbeat = time.Now()
 			f.mu.Unlock()
 
-			err := f.checkFileChanges()
+			err := f.checkFileChanges(ctx)
 			if err != nil {
 				f.appLogger.Error("error-checking-file-changes", slog.String("error", err.Error()))
 			}
@@ -81,7 +78,7 @@ func (f *fileChangesTracker) timerThread(ctx context.Context) {
 	}
 }
 
-func (f *fileChangesTracker) checkFileChanges() error {
+func (f *fileChangesTracker) checkFileChanges(ctx context.Context) error {
 	query := fmt.Sprintf("SELECT * FROM file_events WHERE target_path LIKE '%s%%'  AND time > %d;", f.config.Directory, f.lastProcessedTimestamp)
 	res, err := f.osqueryManager.Query(query)
 	if err != nil {
@@ -93,10 +90,11 @@ func (f *fileChangesTracker) checkFileChanges() error {
 
 	for _, row := range res {
 		f.appLogger.Debug("new change detected", slog.String("target_path", row["target_path"]))
-		f.trackerLogger.Info(
-			"change detected",
-			slog.Any("details", row),
-		)
+
+		err := f.logStore.Write(ctx, row)
+		if err != nil {
+			return fmt.Errorf("error writing log: %w", err)
+		}
 
 		changeTime, err := strconv.ParseInt(row["time"], 10, 64)
 		if err != nil {

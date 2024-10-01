@@ -26,7 +26,7 @@ type LogsResponse struct {
 	Logs []string `json:"logs"`
 }
 
-func (s *Server) HandleSubmitCommands(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) HandleSubmitCommands(w http.ResponseWriter, r *http.Request) {
 	var req CommandRequest
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -44,7 +44,7 @@ func (s *Server) HandleSubmitCommands(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.executor.AddCommands(req.Commands)
+	err = h.executor.AddCommands(req.Commands)
 	if err != nil {
 		response.InternalError(w)
 		return
@@ -56,16 +56,16 @@ func (s *Server) HandleSubmitCommands(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleHealthCheck returns the health status of the worker and timer threads
-func (s *Server) HandleHealthCheck(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) HandleHealthCheck(w http.ResponseWriter, r *http.Request) {
 	res := HealthCheckResponse{
-		WorkerThread: s.executor.IsWorkerThreadAlive(),
-		TimerThread:  s.tracker.IsTimerThreadAlive(),
+		WorkerThread: h.executor.IsWorkerThreadAlive(),
+		TimerThread:  h.tracker.IsTimerThreadAlive(),
 	}
 
 	response.JSON(w, http.StatusOK, res)
 }
 
-func (s *Server) HandleGetLogs(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) HandleGetLogs(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	var offset, limit int64 = 0, 10
 	var err error
@@ -91,7 +91,7 @@ func (s *Server) HandleGetLogs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := s.tracker.GetLogs(r.Context(), limit, offset)
+	res, err := h.tracker.GetLogs(r.Context(), limit, offset)
 	if err != nil {
 		response.InternalError(w)
 		return
@@ -100,7 +100,7 @@ func (s *Server) HandleGetLogs(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusOK, res)
 }
 
-func (s *Server) NotFoundHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusNotFound, map[string]string{
 		"message": fmt.Sprintf("resource: (%s) could not be found", r.URL.Path),
 	})

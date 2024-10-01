@@ -6,9 +6,7 @@ import (
 	"net/http"
 
 	"github.com/danielboakye/filechangestracker/internal/commandexecutor"
-	"github.com/danielboakye/filechangestracker/pkg/filechangestracker"
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/danielboakye/filechangestracker/internal/filechangestracker"
 )
 
 // Server represents an HTTP server
@@ -23,26 +21,15 @@ type Server struct {
 func NewServer(
 	addr string,
 	logger *slog.Logger,
-	tracker filechangestracker.FileChangesTracker,
-	executor commandexecutor.CommandExecutor,
+	handler http.Handler,
 ) *Server {
-	router := chi.NewRouter()
-	router.Use(middleware.Logger)
-
-	s := &Server{
-		logger:   logger,
-		tracker:  tracker,
-		executor: executor,
+	return &Server{
+		logger: logger,
+		httpServer: &http.Server{
+			Addr:    addr,
+			Handler: handler,
+		},
 	}
-
-	s.RegisterRoutes(router)
-
-	s.httpServer = &http.Server{
-		Addr:    addr,
-		Handler: router,
-	}
-
-	return s
 }
 
 // Start starts the HTTP server

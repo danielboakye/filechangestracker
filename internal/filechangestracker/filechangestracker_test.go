@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/danielboakye/filechangestracker/internal/config"
+	"github.com/danielboakye/filechangestracker/internal/mongolog"
 	mongologmock "github.com/danielboakye/filechangestracker/mocks/mongolog"
 	osquerymanagermock "github.com/danielboakye/filechangestracker/mocks/osquerymanager"
-	"github.com/danielboakye/filechangestracker/pkg/config"
-	"github.com/danielboakye/filechangestracker/pkg/mongolog"
 	"github.com/danielboakye/filechangestracker/pkg/osquerymanager"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -32,12 +32,11 @@ func TestCheckFileChanges(t *testing.T) {
 
 	cfg := &config.Config{}
 	appLogger := slog.Default()
-	trackerLogger := slog.New(slog.NewJSONHandler(mockMongolog, nil))
 
-	tracker := New(trackerLogger, appLogger, cfg, mockOSQueryManager, mockMongolog)
+	tracker := New(appLogger, cfg, mockOSQueryManager, mockMongolog)
 	it := tracker.(*fileChangesTracker)
 
-	mockMongolog.EXPECT().Write(gomock.Any()).Return(1, nil).Times(1)
+	mockMongolog.EXPECT().Write(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 
 	timeStr := strconv.FormatInt(time.Now().Unix(), 10)
 	mockOSQueryManager.EXPECT().Query(gomock.Any()).Return([]map[string]string{
@@ -57,7 +56,7 @@ func TestCheckFileChanges(t *testing.T) {
 		},
 	}, nil).Times(1)
 
-	err := it.checkFileChanges()
+	err := it.checkFileChanges(ctx)
 	assert.Nil(err)
 
 	res, err := tracker.GetLogs(ctx, 1, 0)
@@ -80,9 +79,8 @@ func TestHealthCheck(t *testing.T) {
 
 	cfg := &config.Config{}
 	appLogger := slog.Default()
-	trackerLogger := slog.New(slog.NewJSONHandler(mockMongolog, nil))
 
-	tracker := New(trackerLogger, appLogger, cfg, mockOSQueryManager, mockMongolog)
+	tracker := New(appLogger, cfg, mockOSQueryManager, mockMongolog)
 
 	mockOSQueryManager.EXPECT().Query(gomock.Any()).Return(nil, osquerymanager.ErrNoChangesFound).AnyTimes()
 

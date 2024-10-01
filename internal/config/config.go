@@ -10,6 +10,12 @@ import (
 )
 
 const (
+	ConfigName = "config"
+	ConfigPath = "."
+	ConfigType = "yaml"
+
+	DefaultHTTPPort = "9000"
+
 	LogsDBName         = "logsDB"
 	LogsCollectionName = "logs"
 )
@@ -25,10 +31,10 @@ type Config struct {
 
 func LoadConfig(name, path string) (*Config, error) {
 	viper.SetConfigName(name)
-	viper.SetConfigType("yaml")
+	viper.SetConfigType(ConfigType)
 	viper.AddConfigPath(path)
 
-	viper.SetDefault("http_port", "9000")
+	viper.SetDefault("http_port", DefaultHTTPPort)
 
 	err := viper.ReadInConfig()
 	if err != nil {

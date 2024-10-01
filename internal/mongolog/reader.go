@@ -11,10 +11,8 @@ import (
 
 type LogEntry struct {
 	ID        string            `bson:"_id" json:"id"`
-	CreatedAt time.Time         `bson:"created_at" json:"-"`
+	CreatedAt time.Time         `bson:"created_at" json:"-"` // retains the full time precision to ensure accurate and performant sorting
 	Details   map[string]string `bson:"details" json:"details"`
-	Level     string            `bson:"level" json:"-"`
-	Msg       string            `bson:"msg" json:"-"`
 	LogTime   string            `bson:"time" json:"logTime"`
 }
 

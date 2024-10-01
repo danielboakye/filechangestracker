@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/danielboakye/filechangestracker/pkg/config"
+	"github.com/danielboakye/filechangestracker/internal/config"
 )
 
 //go:generate mockgen -destination=../../mocks/commandexecutor/mock_commandexecutor.go -package=commandexecutormock -source=commandexecutor.go

@@ -8,7 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	mongolog "github.com/danielboakye/filechangestracker/pkg/mongolog"
+	mongolog "github.com/danielboakye/filechangestracker/internal/mongolog"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -65,16 +65,15 @@ func (mr *MockLogStoreMockRecorder) ReadLogsPaginated(ctx, page, pageSize interf
 }
 
 // Write mocks base method.
-func (m *MockLogStore) Write(p []byte) (int, error) {
+func (m *MockLogStore) Write(ctx context.Context, logDetail map[string]string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Write", p)
-	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "Write", ctx, logDetail)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Write indicates an expected call of Write.
-func (mr *MockLogStoreMockRecorder) Write(p interface{}) *gomock.Call {
+func (mr *MockLogStoreMockRecorder) Write(ctx, logDetail interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Write", reflect.TypeOf((*MockLogStore)(nil).Write), p)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Write", reflect.TypeOf((*MockLogStore)(nil).Write), ctx, logDetail)
 }

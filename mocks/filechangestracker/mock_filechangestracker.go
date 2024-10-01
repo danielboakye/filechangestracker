@@ -8,7 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	mongolog "github.com/danielboakye/filechangestracker/pkg/mongolog"
+	mongolog "github.com/danielboakye/filechangestracker/internal/mongolog"
 	gomock "github.com/golang/mock/gomock"
 )
 

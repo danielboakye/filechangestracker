@@ -6,18 +6,13 @@
 - setup mongo db in docker
 
 ```bash
-docker run -d --name logsdb -p 27017:27017 \
-  -e MONGO_INITDB_ROOT_USERNAME=user \
-  -e MONGO_INITDB_ROOT_PASSWORD=password \
-  -v mongo_data:/data/db \
-  mongo
-
+make logsdb
 ```
 
 ### 2. Build and start
 
 ```bash
-go build && sudo ./filechangestracker
+make start
 ```
 
 ### 3. Check heath of of workers

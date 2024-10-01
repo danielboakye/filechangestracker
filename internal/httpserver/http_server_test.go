@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/danielboakye/filechangestracker/internal/mongolog"
 	commandexecutormock "github.com/danielboakye/filechangestracker/mocks/commandexecutor"
 	filechangestrackermock "github.com/danielboakye/filechangestracker/mocks/filechangestracker"
-	"github.com/danielboakye/filechangestracker/pkg/mongolog"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -31,7 +31,9 @@ func TestHealthCheck(t *testing.T) {
 	mockFileTracker := filechangestrackermock.NewMockFileChangesTracker(mockCtrl)
 
 	appLogger := slog.Default()
-	apiServer := NewServer(":9000", appLogger, mockFileTracker, mockCmdExecutor)
+	handler := NewHandler(mockFileTracker, mockCmdExecutor)
+	router := handler.RegisterRoutes()
+	apiServer := NewServer(":9000", appLogger, router)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/v1/health", nil)
@@ -62,7 +64,9 @@ func TestSubmitCommands(t *testing.T) {
 	mockFileTracker := filechangestrackermock.NewMockFileChangesTracker(mockCtrl)
 
 	appLogger := slog.Default()
-	apiServer := NewServer(":9000", appLogger, mockFileTracker, mockCmdExecutor)
+	handler := NewHandler(mockFileTracker, mockCmdExecutor)
+	router := handler.RegisterRoutes()
+	apiServer := NewServer(":9000", appLogger, router)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/v1/commands", strings.NewReader(`{"commands":["touch /Users/user/Downloads/test/test.txt"]}`))
@@ -92,7 +96,9 @@ func TestSubmitCommands_Failed(t *testing.T) {
 	mockFileTracker := filechangestrackermock.NewMockFileChangesTracker(mockCtrl)
 
 	appLogger := slog.Default()
-	apiServer := NewServer(":9000", appLogger, mockFileTracker, mockCmdExecutor)
+	handler := NewHandler(mockFileTracker, mockCmdExecutor)
+	router := handler.RegisterRoutes()
+	apiServer := NewServer(":9000", appLogger, router)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/v1/commands", strings.NewReader(`{"commands": "touch /Users/user/Downloads/test/test.txt"}`))
@@ -113,7 +119,9 @@ func TestGetLogs(t *testing.T) {
 	mockFileTracker := filechangestrackermock.NewMockFileChangesTracker(mockCtrl)
 
 	appLogger := slog.Default()
-	apiServer := NewServer(":9000", appLogger, mockFileTracker, mockCmdExecutor)
+	handler := NewHandler(mockFileTracker, mockCmdExecutor)
+	router := handler.RegisterRoutes()
+	apiServer := NewServer(":9000", appLogger, router)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/v1/logs", nil)
@@ -148,7 +156,9 @@ func TestNotFound(t *testing.T) {
 	mockFileTracker := filechangestrackermock.NewMockFileChangesTracker(mockCtrl)
 
 	appLogger := slog.Default()
-	apiServer := NewServer(":9000", appLogger, mockFileTracker, mockCmdExecutor)
+	handler := NewHandler(mockFileTracker, mockCmdExecutor)
+	router := handler.RegisterRoutes()
+	apiServer := NewServer(":9000", appLogger, router)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/v1/log", nil)
