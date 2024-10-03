@@ -15,10 +15,10 @@ build:
 
 start: build
 	echo "> staring osquery!"
-	sudo osqueryd --verbose --disable_events=false --disable_audit=false --disable_endpointsecurity=false --disable_endpointsecurity_fim=false --enable_file_events=true > /dev/null 2>&1 & disown
+	sudo osqueryd --verbose --disable_events=false --disable_audit=false --disable_endpointsecurity=false --disable_endpointsecurity_fim=false --enable_file_events=true > test.log 2>&1 & 
 
 	echo "> staring app!"
-	sudo -S nohup ./filechangestracker > /dev/null 2>&1 & disown
+	sudo -S nohup ./filechangestracker > test.log 2>&1 & 
 
 test: 
 	go test -v -cover ./...
