@@ -2,7 +2,7 @@
 
 ### 1. Config
 
-- Updated config.yaml to setup tracking directory and osquery socket_path
+- Update the config.yaml to setup tracking directory and osquery socket_path
 - Find your socket path
   - run in terminal: `osqueryi`
   - run query `select value from osquery_flags where name = 'extensions_socket';`
