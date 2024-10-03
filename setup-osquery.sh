@@ -22,7 +22,7 @@ SHELL_PROFILE=""
 if [ "$SHELL" = "/bin/bash" ]; then
     SHELL_PROFILE="$HOME/.bash_profile"
 elif [ "$SHELL" = "/bin/zsh" ]; then
-    SHELL_PROFILE="$HOME/.zshrc"
+    SHELL_PROFILE="$HOME/.zprofile"
 else
     echo "Unsupported shell. Please add osqueryd path manually to your shell profile."
 fi
