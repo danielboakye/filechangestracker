@@ -11,14 +11,15 @@ logsdb:
 	mongo
 
 build:
-	go build
+	go build -buildvcs=false
 
 start: build
+	sudo -v
 	echo "> staring osquery!"
-	sudo osqueryd --verbose --disable_events=false --disable_audit=false --disable_endpointsecurity=false --disable_endpointsecurity_fim=false --enable_file_events=true > test.log 2>&1 & 
-
+	sudo /opt/osquery/lib/osquery.app/Contents/MacOS/osqueryd --verbose --disable_events=false --disable_audit=false --disable_endpointsecurity=false --disable_endpointsecurity_fim=false --enable_file_events=true > /dev/null 2>&1 &
 	echo "> staring app!"
-	sudo -S nohup ./filechangestracker > test.log 2>&1 & 
+	sudo ./filechangestracker > test.log 2>&1 &
+	echo "ready!"
 
 test: 
 	go test -v -cover ./...
