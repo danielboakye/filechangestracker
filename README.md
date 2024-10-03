@@ -1,5 +1,32 @@
 ## Setup
 
+### Start osqueryd
+
+osqueryd should be running before app is started
+
+- Update osquery.conf
+
+```json
+{
+  "file_paths": {
+    "downloads": ["/Users/{USERNAME}/Downloads/test/%%"]
+  }
+}
+```
+
+- macOS:
+
+```bash
+sudo osqueryd --socket=/Users/{USERNAME}/.osquery/shell.em --verbose --disable_events=false --disable_audit=false --disable_endpointsecurity=false --disable_endpointsecurity_fim=false --enable_file_events=true
+```
+
+- Windows: (_as administrator_)
+
+```bash
+osqueryd --verbose --disable_events=false --enable_ntfs_event_publisher=true --enable_powershell_events_subscriber=true --enable_windows_events_publisher=true --enable_windows_events_subscriber=true
+
+```
+
 ### 1. Config
 
 - Update the config.yaml to setup tracking directory and osquery socket_path
@@ -33,30 +60,4 @@ make start
 curl -s -X POST http://localhost:9000/v1/commands \
 -H "Content-Type: application/json" \
 -d '{"commands":["touch /Users/{USERNAME}/Downloads/test/test.txt"]}'
-```
-
-NOTE:
-osqueryd should be running
-
-- Update osquery.conf
-
-```json
-{
-  "file_paths": {
-    "downloads": ["/Users/{USERNAME}/Downloads/test/%%"]
-  }
-}
-```
-
-- macOS:
-
-```bash
-sudo osqueryd --socket=/Users/{USERNAME}/.osquery/shell.em --verbose --disable_events=false --disable_audit=false --disable_endpointsecurity=false --disable_endpointsecurity_fim=false --enable_file_events=true
-```
-
-- Windows: (_as administrator_)
-
-```bash
-osqueryd --socket=C:\Users\{USERNAME}\.osquery\shell.em --verbose --disable_events=false --enable_ntfs_event_publisher=true --enable_powershell_events_subscriber=true --enable_windows_events_publisher=true --enable_windows_events_subscriber=true
-
 ```
