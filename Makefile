@@ -21,10 +21,10 @@ stop/osqueryd/mac:
 	sudo pkill osqueryd
 
 run/dev/mac:
-	sudo $HOME/go/bin/wails dev
+	sudo $(HOME)/go/bin/wails dev
 
 build/package:
-	sudo $HOME/go/bin/wails build
+	sudo $(HOME)/go/bin/wails build > /dev/null 2>&1 &
 
 run/build/mac:
 	sudo ./build/bin/filechangestracker.app/Contents/MacOS/filechangestracker
