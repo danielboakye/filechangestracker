@@ -10,13 +10,10 @@ else
     echo "osquery is already installed or the osqueryd binary exists."
 fi
 
-GOPATH=$(go env GOPATH)
-GO_BIN="$GOPATH/bin/go"
-
+GO_BIN=$(which go)
 if ! command -v wails &> /dev/null
 then
     echo "'wails' could not be found, installing it now..."
-    # Install Wails using 'go install'
     $GO_BIN install github.com/wailsapp/wails/v2/cmd/wails@latest
 
     if [ $? -eq 0 ]; then
