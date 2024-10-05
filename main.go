@@ -1,76 +1,32 @@
 package main
 
 import (
-	"context"
-	"fmt"
+	"embed"
 	"log"
-	"log/slog"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
-	"github.com/danielboakye/filechangestracker/internal/commandexecutor"
-	"github.com/danielboakye/filechangestracker/internal/config"
-	"github.com/danielboakye/filechangestracker/internal/filechangestracker"
-	"github.com/danielboakye/filechangestracker/internal/httpserver"
-	"github.com/danielboakye/filechangestracker/internal/mongolog"
-	"github.com/danielboakye/filechangestracker/pkg/osquerymanager"
-	"github.com/osquery/osquery-go"
+	"github.com/danielboakye/filechangestracker/internal/core"
+	"github.com/wailsapp/wails/v2"
+	"github.com/wailsapp/wails/v2/pkg/logger"
+	"github.com/wailsapp/wails/v2/pkg/options"
 )
 
+//go:embed all:frontend
+var assets embed.FS
+
 func main() {
-	cfg, err := config.LoadConfig(config.ConfigName, config.ConfigPath)
+	app := core.New()
+	err := wails.Run(&options.App{
+		Title:             "Filechangestracker",
+		Width:             1200,
+		Height:            800,
+		HideWindowOnClose: true,
+		LogLevel:          logger.DEBUG,
+		Assets:            assets,
+		Bind: []interface{}{
+			app,
+		},
+	})
 	if err != nil {
-		log.Fatalf("error loading config: %v", err)
+		log.Fatal("failed to start app: %w", err)
 	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	logStore, err := mongolog.NewMongoLogStore(ctx, cfg.MongoURI, config.LogsDBName, config.LogsCollectionName)
-	if err != nil {
-		log.Fatalf("failed to start mongo: %v", err)
-	}
-
-	appLogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
-	}))
-
-	executor := commandexecutor.New(appLogger, cfg)
-	if err := executor.Start(ctx); err != nil {
-		log.Fatalf("failed to start command executor: %v", err)
-	}
-
-	osqueryClient, err := osquery.NewClient(cfg.SocketPath, 10*time.Second)
-	if err != nil {
-		log.Fatalf("Error creating osquery client: %v", err)
-	}
-	osqueryManager := osquerymanager.New(osqueryClient)
-
-	tracker := filechangestracker.New(appLogger, cfg, osqueryManager, logStore)
-	if err := tracker.Start(ctx); err != nil {
-		log.Fatalf("failed to start tracker: %v", err)
-	}
-	appLogger.Info("started-tracker-on-directory", slog.String("directory", cfg.Directory))
-
-	handler := httpserver.NewHandler(tracker, executor)
-	router := handler.RegisterRoutes()
-
-	addr := fmt.Sprintf(":%s", cfg.HTTPPort)
-	apiServer := httpserver.NewServer(addr, appLogger, router)
-	if err := apiServer.Start(); err != nil {
-		log.Fatal("failed to start http server on: ", addr)
-	}
-
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
-	<-quit
-
-	appLogger.Info("starting-shutdown")
-	apiServer.Stop(ctx)
-	executor.Stop(ctx)
-	tracker.Stop(ctx)
-	logStore.Close(ctx)
-	appLogger.Info("shutdown-complete!")
 }

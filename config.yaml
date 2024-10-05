@@ -1,4 +1,4 @@
-directory: '/Users/USERNAME/Downloads/'
+directory: '/Users/{USERNAME}/Downloads/'
 check_frequency: 1 # in seconds
 reporting_api: 'http://api.external.com/v1/report'
 http_port: '9000'

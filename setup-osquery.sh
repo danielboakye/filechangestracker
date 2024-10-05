@@ -10,6 +10,26 @@ else
     echo "osquery is already installed or the osqueryd binary exists."
 fi
 
+GOPATH=$(go env GOPATH)
+GO_BIN="$GOPATH/bin/go"
+
+if ! command -v wails &> /dev/null
+then
+    echo "'wails' could not be found, installing it now..."
+    # Install Wails using 'go install'
+    $GO_BIN install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+    if [ $? -eq 0 ]; then
+        echo "'wails' installed successfully."
+    else
+        echo "Failed to install 'wails'. Please check your Go environment."
+        exit 1
+    fi
+else
+    echo "'wails' is already installed."
+fi
+
+
 JSON_CONTENT="{\"file_paths\": {\"downloads\": [\"$HOME/Downloads/%%\"]}}"
 
 echo $JSON_CONTENT | sudo tee /var/osquery/osquery.conf > /dev/null

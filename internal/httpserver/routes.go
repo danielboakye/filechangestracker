@@ -5,6 +5,7 @@ import (
 	"github.com/danielboakye/filechangestracker/internal/filechangestracker"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/cors"
 )
 
 type Handler struct {
@@ -26,6 +27,15 @@ func NewHandler(
 func (h *Handler) RegisterRoutes() *chi.Mux {
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
+
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
 
 	router.Route("/v1", func(r chi.Router) {
 		r.Post("/commands", h.HandleSubmitCommands)

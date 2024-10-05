@@ -1,9 +1,21 @@
-## Setup
+# Project Setup and Usage
 
-### 1. Config
+go project track file changes on host machine
 
-- setup config and osquery
-  on mac
+## Prerequisites
+
+- **[Docker](https://www.docker.com/)**: Ensure that Docker is installed and running on your machine.
+- **[Make](https://www.gnu.org/software/make/)**: Ensure that `make` is installed on your system.
+
+## Dependencies
+
+- **[Node.js](https://nodejs.org/en)**
+- **[Wails](https://wails.io/docs/introduction)**: Wails is a project that enables you to write desktop apps using Go and web technologies.
+- **[Osquery](https://osquery.io/)**: Osquery uses basic SQL commands to leverage a relational data-model to describe a device
+
+### 1. Configuration & Setup
+
+- setup config and osquery on mac
 
 ```bash
 make setup/osquery/mac
@@ -15,10 +27,32 @@ make setup/osquery/mac
 make logsdb
 ```
 
-### 2. Build and start
+### 2. start ui
+
+- start osquery on mac
 
 ```bash
-make start
+make start/osqueryd/mac
+```
+
+- Build package
+
+```bash
+make build/package
+```
+
+- Run build
+
+```bash
+make run/build/mac
+```
+
+OR
+
+- Run in dev mode
+
+```bash
+make run/dev/mac
 ```
 
 ### 3. Check heath of of workers
@@ -28,20 +62,26 @@ make start
 ### 4. Add new command to queue
 
 ```bash
-touch $HOME/Downloads/test1.txt
-```
-
-```bash
 curl -s -X POST http://localhost:9000/v1/commands \
 -H "Content-Type: application/json" \
--d "{\"commands\":[\"touch $HOME/Downloads/test2.txt\"]}"
+-d "{\"commands\":[\"touch $HOME/Downloads/test1.txt\"]}"
+```
+
+OR create new file manually
+
+```bash
+touch $HOME/Downloads/test2.txt
 ```
 
 ### 5. Get logs
 
-- wait 5 seconds and run command below
+- wait 5 seconds and click "Fetch logs" on UI
+
+OR run command below
 
 `curl -s -X GET http://localhost:9000/v1/logs\?limit=2`
+
+---
 
 NOTES
 

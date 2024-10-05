@@ -64,6 +64,7 @@ func (f *fileChangesTracker) timerThread(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
+			f.appLogger.Info("file-watcher-shutdown")
 			return
 		case <-time.After(checkFrequency):
 			f.mu.Lock()

@@ -1,6 +1,8 @@
+test: 
+	go test -v -cover ./...
+
 setup/osquery/mac:
 	@./setup-osquery.sh
-
 
 logsdb:
 	docker stop logsdb; docker rm logsdb; true;
@@ -10,20 +12,19 @@ logsdb:
 	-v mongo_data:/data/db \
 	mongo
 
-build:
-	go build -buildvcs=false
-
-start: build
+start/osqueryd/mac:
 	sudo -v
 	echo "> staring osquery!"
 	sudo /opt/osquery/lib/osquery.app/Contents/MacOS/osqueryd --verbose --disable_events=false --disable_audit=false --disable_endpointsecurity=false --disable_endpointsecurity_fim=false --enable_file_events=true > /dev/null 2>&1 &
-	echo "> staring app!"
-	sudo ./filechangestracker > test.log 2>&1 &
-	echo "ready!"
 
-test: 
-	go test -v -cover ./...
-
-stop:
+stop/osqueryd/mac:
 	sudo pkill osqueryd
-	sudo -S pkill -f ./filechangestracker
+
+run/dev/mac:
+	sudo wails dev
+
+build/package:
+	sudo wails build
+
+run/build/mac:
+	sudo ./build/bin/filechangestracker.app/Contents/MacOS/filechangestracker

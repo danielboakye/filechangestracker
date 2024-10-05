@@ -4,17 +4,12 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
-
-	"github.com/danielboakye/filechangestracker/internal/commandexecutor"
-	"github.com/danielboakye/filechangestracker/internal/filechangestracker"
 )
 
 // Server represents an HTTP server
 type Server struct {
 	httpServer *http.Server
 	logger     *slog.Logger
-	tracker    filechangestracker.FileChangesTracker
-	executor   commandexecutor.CommandExecutor
 }
 
 // NewServer creates and returns a new Server instance
@@ -46,5 +41,6 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) Stop(ctx context.Context) error {
+	s.logger.Info("stopping-http-server")
 	return s.httpServer.Shutdown(ctx)
 }
