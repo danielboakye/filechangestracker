@@ -24,7 +24,7 @@ run/dev/mac:
 	sudo $(HOME)/go/bin/wails dev
 
 build/package:
-	sudo $(HOME)/go/bin/wails build > /dev/null 2>&1 &
+	sudo $(HOME)/go/bin/wails build
 
 run/build/mac:
-	sudo ./build/bin/filechangestracker.app/Contents/MacOS/filechangestracker
+	sudo ./build/bin/filechangestracker.app/Contents/MacOS/filechangestracker > /dev/null 2>&1 &
