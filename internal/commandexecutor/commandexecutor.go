@@ -49,6 +49,10 @@ func (f *commandExecutor) workerThread(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
+			if f.commandQueue != nil {
+				close(f.commandQueue)
+				f.commandQueue = nil
+			}
 			f.appLogger.Info("command-executor-shutdown")
 			return
 		case <-ticker.C:
