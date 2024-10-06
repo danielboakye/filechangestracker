@@ -42,17 +42,29 @@ func New(appLogger *slog.Logger, cfg *config.Config) CommandExecutor {
 	}
 }
 
+func (f *commandExecutor) drainCommandQueue() {
+	for newCmd := range f.commandQueue {
+		err := f.executeCommand(newCmd)
+		if err != nil {
+			f.appLogger.Error("error-executing-command", slog.String("error", err.Error()))
+		}
+	}
+}
+
 func (f *commandExecutor) workerThread(ctx context.Context) {
 	ticker := time.NewTicker(10 * time.Second) // Heartbeat every 10 seconds
-	defer ticker.Stop()
+	defer func() {
+		ticker.Stop()
+		if f.commandQueue != nil {
+			f.drainCommandQueue() // process all queued commands before shutdown
+			close(f.commandQueue)
+			f.commandQueue = nil
+		}
+	}()
 
 	for {
 		select {
 		case <-ctx.Done():
-			if f.commandQueue != nil {
-				close(f.commandQueue)
-				f.commandQueue = nil
-			}
 			f.appLogger.Info("command-executor-shutdown")
 			return
 		case <-ticker.C:

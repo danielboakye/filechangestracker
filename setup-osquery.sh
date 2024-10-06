@@ -1,6 +1,13 @@
 #!/bin/bash
 set -e
 
+DIRECTORY=${1:-"$HOME/Downloads/"}
+
+# Ensure the directory path ends with a trailing slash
+if [[ "${DIRECTORY}" != */ ]]; then
+  DIRECTORY="${DIRECTORY}/"
+fi
+
 # Check if osquery is installed using brew
 if ! brew list --cask | grep -q "osquery" && [ ! -f "/opt/osquery/lib/osquery.app/Contents/MacOS/osqueryd" ]; then
     echo "osquery not found and osqueryd binary is missing. Installing osquery via Homebrew..."
@@ -27,7 +34,7 @@ else
 fi
 
 
-JSON_CONTENT="{\"file_paths\": {\"downloads\": [\"$HOME/Downloads/%%\"]}}"
+JSON_CONTENT="{\"file_paths\": {\"downloads\": [\"${DIRECTORY}%%\"]}}"
 
 echo $JSON_CONTENT | sudo tee /var/osquery/osquery.conf > /dev/null
 
@@ -36,7 +43,7 @@ echo "Configuration added to /var/osquery/osquery.conf"
 
 # YAML content to be written to config.yaml
 YAML_CONTENT=$(cat <<EOF
-directory: '$HOME/Downloads/'
+directory: '${DIRECTORY}'
 check_frequency: 1 # in seconds
 reporting_api: 'http://api.external.com/v1/report'
 http_port: '9000'

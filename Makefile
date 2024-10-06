@@ -1,8 +1,10 @@
+DIRECTORY ?= $(HOME)/Downloads/
+
 test: 
 	go test -v -cover ./...
 
 setup/osquery/mac:
-	@./setup-osquery.sh
+	@./setup-osquery.sh $(DIRECTORY)
 
 logsdb:
 	docker stop logsdb; docker rm logsdb; true;
