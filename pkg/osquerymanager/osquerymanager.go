@@ -18,7 +18,6 @@ type osQueryManager struct {
 	osqueryClient *osquery.ExtensionManagerClient
 }
 
-// osquery.ExtensionPluginResponse
 func New(osqueryClient *osquery.ExtensionManagerClient) OSQueryManager {
 	return &osQueryManager{
 		osqueryClient: osqueryClient,

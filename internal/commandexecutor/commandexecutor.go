@@ -56,9 +56,8 @@ func (f *commandExecutor) workerThread(ctx context.Context) {
 	defer func() {
 		ticker.Stop()
 		if f.commandQueue != nil {
-			f.drainCommandQueue() // process all queued commands before shutdown
 			close(f.commandQueue)
-			f.commandQueue = nil
+			f.drainCommandQueue()
 		}
 	}()
 
